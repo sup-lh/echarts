@@ -1,280 +1,283 @@
-# 配置静态网:
-- 查看ip : ip addr 
-- vi /etc/sysconfig/network-scripts/ifcfg-ens33
-  - BOOTPROTO=static
-  - ONBOOT=yes
-  - IPADDR=
-  - NETMASK=255.255.255.0
-  - GATEWAY=
-  - DNS1=114.114.114.114
-- 重启网络设置 : systemctl restart network
-- 192.168.120.200/24 : 24则是子网掩码:255.255.255.0
-  - 因为三个255 就是3*8个1
-- 本地cmd查看IP地址 : ipconfig -all
+
+------
+
+# 项目路径⛷️
+
+```python
+##############################################################################
+#
+#      \app
+#      │  
+#      │  
+#      │
+#      ├─   /models
+#      │        __init__
+#      │        data.py  
+#      │
+#      ├─   /static
+#      │      └ /js
+#      │         └  echarts.min.js
+#      │     
+#      │
+#      ├─   /templates
+#      │      └ index.html  
+#      │        
+#      │
+#      │─   __init__.py
+#      │        
+#      │
+#      └──   routes.py
+#      
+#       start.py       
+#
+##############################################################################
+```
+
+# echarts文件的下载🤺
+> [!WARNING|label:]echarts.min.js 文件的下载：<br>
+- 进入[echarts官网](https://echarts.apache.org/zh/index.html)  --> 下载  --> Dist  --> Tags选择版本  --> 点击echarts.js或者echarts.min.js  --> 点击Raw进入网站  --> 复制网站链接  --> 打开fdm下载即可
   
-# final连接虚拟机
+- 上步骤截图：<br>
+    - ![](./2.jpg)
+    - ![](./3.jpg)
+    - ![](./4.jpg)
+    - ![](./5.jpg)
 
-# shell
-- Shell（也称为壳层）在计算机科学中指“为用户提供用户界面”的软件，通常指的是命令行界面的解析器。一般来说，这个词是指操作系统中提供访问内核所提供之服务的程序。Shell也用于泛指所有为用户提供操作界面的程序，也就是程序和用户交互的层面。因此与之相对的是内核（英语：Kernel），内核不提供和用户的交互功能。
+<br><br><br>
 
-- 不过这个词也拿来指应用软件，或是任何在特定组件外围的软件，例如浏览器或电子邮件软件是HTML排版引擎的Shell。Shell这个词是来自于操作系统（内核）与用户界面的外层界面。
+# 各版本区别🛶
+> [!Danger|label:]最简版：<br>
+- 文件夹及文件分布：
+   - app文件夹和start.py在同一级
+   - app文件夹里面包括static文件夹和templates文件夹以及__init__.py和routes.py两个py文件
+       - static文件夹里只有js文件夹，js文件夹里放有echarts.min.js文件
+       - templates文件夹里存有网站文件
+   - ![](./1.jpg)
+- 最简版echarts是在routes文件中的return上面直接写 ***列表*** 数据，然后直接返回到html文件中利用
+- 在html文件中定义函数的时候怎样的写法：
+    - ```python
+        #在routes中的样子
+        a=['詹姆斯','库里','哈登']
+        b=[2,4,8]
+        #在html中的样子
+        var name_list = [{% for i in a %} '{{i}}', {% endfor %}];
+        var data = [{% for i in b %} {{i}}, {% endfor %}];
+      ```
+<br>
 
-- 通常将shell分为两类：命令行与图形界面。命令行壳层提供一个命令行界面（CLI）；而图形壳层提供一个图形用户界面（GUI）。
+> [!Tip|label:]稍微复杂版：<br>
+- 文件夹布置一样
+- 稍复杂版只是把routes里面需要传输的值写成字典，然后在html文件中读取键值对，然后呈现成pie图像。
+- 稍微复杂版echarts是在routes文件中的return上面直接写 ***字典*** 数据，然后直接返回到html文件中利用
+- 在html文件中定义函数的时候怎样的写法：
+    - ```python
+        #在routes中的样子
+        name=['詹姆斯','库里','哈登']
+        num=[2,4,8]
+        list_data=[]
+        for i in range(len(name)):
+            list_data.append(dict(name=name[i],value=num[i]))
+        return render_template('index.html', data_list=list_data)
+        #在html中的样子
+        var list_data = [{% for i in data_list %}  {value:{{i['value']}},name:'{{i['name']}}' },  {% endfor %}];
+      ```
+    - *注意*： 因为迭代上面name，会得到没有引号的字符串，所以name这里要加引号
 
-# 命令:
+<br>
 
-## 目录相关命令
-- 显示绝对路径 : pwd
-- 显示当前路径中的文件 : ls
-  - 显示全部文件,包括隐藏文件 : ls -a(all)
-  - 显示文件的详细内容 : ls -l(long)
-    - 缩写就是 : ll
-- cd 切换到指定目录
-  - cd ./ : 当前目录
-  - cd .// : 上一级目录
-  - cd ` : 切换到当前用户的家目录
-    - root为/root
-    - 普通用户为/host
-  - 只要带斜杠的都是绝对路径
-- 创建目录 : mkdir
-  - mkdir -p : 创建多级目录
-- 删除目录 : rmdir
-  - rmdir -p : 删除多级目录
-- 拷贝 : cp
-  - cp 源目录或文件 目标目录或文件
-  - cd -r : 递归复制文件夹,复制文件夹时夹
-- 移动或者重命名 : mv
-  - mv 源目录 目标目录
-- 删除 : rm
-  - rm -r : 递归删除
-  - rm -f : 强制删除
-- 匹配全部 : * 
-
-
-## 文件相关命令
-- 创建文件 : touch
-- 打印 : echo
-  - echo aaa >> lin.txt : 将文字打入文件中
-- 查看文件内容 : cat
-  - cat -A : 列出特殊字符而非空行
-  - cat -b : 列出行号,空白行不算行号
-  - cat -n : 列出行号,空白行算行号
-- 查看文件内容,一页一页显示 : more
-  - 空格 : 向下翻一页
-  - enter : 向下翻一行
-- 查看文件头几行 : head
-  - head -n 3 : 查看头三行
-- 查看文件尾几行 : tail
-  - tail -n 3 : 查看尾三行
-  - tail -f : 查看文件修改的内容
-- 查看 行数,单词数,字节数 : wc
-  - wc -l : 查看行数
-  - wc -w : 查看单词数
-  - wc -c : 查看字节数
-- 查看文件类型 : file
-- 下载 : wget
-
-
-## 查找相关命令
-- find : 查找文件或目录
-  - find -name : 按文件名查找
-  - find -user : 按文件拥有者查找
-  - find -size : 按文件大小查找
-  - 用法 : find 查找范围 命令 条件
-  - find / -name 1.txt
-- grep : 查找内容
-  - grep -c : 显示目标所在行
-  - grep -n : 显示目标所在行以及行号
-- which : 查找命令所在的目录
-
-
-## 日期相关命令
-- date
-  - date -s : 设置时间
-
-
-## 进程相关命令
-- ps : 查看系统进程
-  - ps -aux : 显示全部详细进程
-  - ps -aux | grep *** : 结合管道命令查看有 ** 的进程
-
-- kill : 关闭进程
-  - kill -9 : 强迫进程结束
-
-
-## 压缩解压
-- tar : 打包
-  - tar 命令 包名.tar 带打包内容  
-  - -c create  :  生成tar打包文件
-  - -x extract  :  解压tar文件
-  - -v verbose  :  显示详细信息
-  - -f file  :  指定解压后的名字
-  - -z   :  打包同时压缩
-  - -C  :  解压导指定目录
-- zip . unzip : 需要yum install 安装下
-
-
-## 系统状态检测命令
-- ip addr : 查看系统ip
-- netstat -nplt : 查看谁在连接了自己,并显示进程号
-  - 但是需要 yum install -y net-tools
-- uname : 查看系统内核等信息
-  - -a : 查看系统完整信息
-  - -s : 系统内核名称
-  - -n : 节点名称
-  - -r : 内核发行版
-  - -v : 内核版本
-  - -m : 硬件名称
-  - -i : 硬件平台
-  - -p : 处理器类型
-  - -o : 操作系统名称
-- uptime : 查看系统的负载信息
-  - 负载值越低越好
-- free : 查看内存使用情况
-- who : 查看当前登入主机的用户终端信息
-- history : 历史执行过的命令
-- df : 查看磁盘容量
-  - -h : 给人看的
-
-## 关机命令
-- reboot : 重启
-- poweroff : 关机
-- halt : 关机
-- shutdown : 多选项关机
-  - -h : 关机
-  - -r : 重启
-  - shutdown -h 1 "1 minites shutdown"
-    - 会通知全部在使用该系统的人  "1 minites shutdown"
-
-# 端口转发
-- 原理
-  - 建立两个局域网,即:
-  - 将linux端口和自己本地端口连接,然后别人跟自己本地端口连接,即两个局域网
-- 步骤
-  - 在VMware上的 虚拟网络编辑器 上的 NAT设置 上的 端口转发
-
-# 用户和组
-- useradd ： 创建用户
-  - 例如 ： useradd lh
-  - 默认的组id ：lh
-  - 顺带加入一个组的话：useradd -g 组名 用户名
-- passwd : 创建密码
-  - 例如 ： passwd lh
-- su : 切换用户
-  - su lh
-- id ：查看用户信息
-  - id lh
-- groupadd : 创建组
-
-- usermod ：修改用户信息
-  - -l ：修改用户名
-    - usermod -l lin lh
-  - -g ：修改主组
-    - 一个用户只能拥有一个主组
-  - -G ：修改副组
-    - 一个用户可以拥有多个副组
-  - -u ：修改用户id
-
-- userdel : 删除用户
-- groupdel ：删除组
-
-- **文件类型**
-  - 普通文件类型  **-**
-    - Linux中最多的一种文件类型, 包括 纯文本文件(ASCII)；二进制文件(binary)；数据格式的文件(data);各种压缩文件。第一个属性为 [-] 。
-  - 目录文件类型  **d**
-    - 在linux中，它的思想是一切皆是文件，目录文件也就是Windows中的目录，也就是能用 cd 命令进入的。第一个属性为 [d]，例如 [drwxr-xr-x]。
-  - 字符设备文件  **c**
-    - 即串行端口的接口设备，例如键盘、鼠标等等。第一个属性为 [c]。
-  - 块设备文件  **b**
-    - 即存储数据以供系统存取的接口设备，简单而言就是硬盘。例如一号硬盘的代码是 /dev/hda1等文件。第一个属性为 [b]。
-  - 套接字文件  **s**
-    - 这类文件通常用在网络数据连接。可以启动一个程序来监听客户端的要求，客户端就可以通过套接字来进行数据通信。第一个属性为 [s]，最常在 /var/run目录- 到这种文件类型。
-  - 管道文件  **p**
-    - FIFO也是一种特殊的文件类型，它主要的目的是，解决多个程序同时存取一个文件所造成的错误。FIFO是first-in-first-out(先进先出)的缩写。第一个属性为[p]。
-  - 链接文件  **l**
-    - 类似Windows下面的快捷方式。第一个属性为 [l]，例如 [lrwxrwxrwx]。
-
-
-- u：用户本身；g：用户所在组；o：其他组
-- r：可读；w：可写；x：可执行
-- linux里面一切皆文件
+> [!Note|label:]标准版：
+- 文件夹及文件分布：
+    - 与上面的不同的是，多了一个models文件夹，里面包含一个__init__.py文件和一个data.py文件，后面的文件名随便取，上图：
+    - ![](./6.jpg)
   
-- chmod ；改变文件权限
-  - 添加权限：chmod +x lin.txt
-  - 删除权限：chmod -x lin.txt
-  - 特定的增减权限：chmod u+x lin.txt
-- chown : 改变文件所属者
-  - chown lh sup.txt
+- data 文件里则是在数据库的各个表里面创建字段来储存数据，如图：
+    - ![](./7.jpg)
+    - 
+    - 里面的__tablename__是库的表名，要看这些表是来自哪个库的，前往app文件夹里面__init__ app.config第一个配置文件后面写的是哪个库。
+    - ![](./9.jpg)
+    - 
+    - 第一个fld_index是序号，primary_key则是自动排序，该字段在html文件中不需要去引用了
+    - ![](./8.jpg)
 
-- 权限提升
-  - sudoers ：在/etc/sudoers
-  - 修改sudoers ：visudo
-    - root  ALL=(ALL:ALL)  ALL
-      - root用户  ALL 表示任何的主机都能执行  ALL：ALL 表示以root可以代表任何人的身份执行  ALL 表示任何命令
-    - lh   192.168.120.1/24=(root) /usr/sbin/useradd
-      - lh 在192.168.120.1/24网段上连接主机，并拥有root权限，并只能使用useradd的命令
-  - 1.将用户添加进wheel 这个组里面，就能拥有很多权限
-  - 2.或者在sudoers 里面的root后面加上用户名
+<br><br><br>
+    
+# 各个文件之间的内在联系🥏
 
-- 创建快捷方式：
-  - ln -s 源文件 现文件
-
-# 安装jdk
-
-- 配置环境变量
-  1. 编辑配置文件：/etc/profile
-  2. vim 进去， 拉到最底下，加上：
-     1. JAVA_HOME=jdk的文件夹
-     2. CLASSPATH=$JAVA_HOME/lib
-     3. PATH=$PATH:$JAVA_PATH/bin
-  3. 重新加载环境变量： source /etc/profile
-
-# yum 常用命令：
-- yum check-update : 列出需要更新的软件清单
-- yum update ：更新所有需要更新的软件
-- yum install <软件名>：安装指定软件
-- yum update <软件名>: 更新指定软件
-- yum list : 软件中心
-- yum remove <软件名>: 卸载指定软件
-- yum search <条件>: 查询条件软件 
-- yum clear : 清楚缓存
-  
-- 更换源: 
-- /etc/yum.repos.d/
-- 默认选择CentOS-Base.repo 里面的网址下载
-- 更换
-  1. 备份 CentOs-Base.repo
-  2. wget  http://mirrors.aliyun.com/repo/Centos-7.repo
-  3. 清理缓存:  yum clean all
-  4. 更新新的元数据缓存: yum makecache
+- 在app文件夹里面的__init__导入SQLAlchemy，连接数据库里面的库并给到db变量
+- 在models文件夹里面的data文件从app文件夹导入db，即库
+- 在data文件里创建不同的表来存储不同的数据，不同表名上面的类名可以随便取，但是表名要跟数据库里面的表名一致
+- 在models文件夹里面的__init__导入data文件里面的类名
+- 这时就可以在routes文件里面从models文件夹里面直接导类，即导了这些类里面的表
+- 来到routes里面，定义不同的函数，这些函数的作用是用query功能查询表里面的字段，并返回出查询的结果
+- 往下看到routes文件的路由功能，用变量接住上面函数返回的值，并传递给html文件
+- 来到html文件，因为传递到html文件的是query.all()，是一个列表，所以要迭代，迭代对象是表的全部字段
+- 选i.fld_sale_count等的字段，为什么用点.呢，因为i是类下面的变量
+- 最后就呈现到了网页中了
 
 
-# 装mysql
-- 使用rpm安装
-  - 网上下载时要中间带有rpm的tar安装包
-  - [下载网址](https://dev.mysql.com/downloads/mysql/)
-  1. 然后传进去并解包
-  2. 安装依赖包
-    -  yum -y install make gcc-c++ cmake bison-devel ncurses-devel libaio libaio-devel net-tools
-  3. 卸载原有自带数据库:
-    - rpm -qa | grep mariadb 
-    - yum -y remove mariadb-libs
-  4. 开始安装mysql(CentOS7安装MySQL8.0教程)
-     1. rpm -ivh mysql-community-common-8.0.11-1.el7.x86_64.rpm --nodeps --force 命令安装 common
-     2. rpm -ivh mysql-community-libs-8.0.11-1.el7.x86_64.rpm --nodeps --force 命令安装 libs
-     3. rpm -ivh mysql-community-client-8.0.11-1.el7.x86_64.rpm --nodeps --force 命令安装 client
-     4. rpm -ivh mysql-community-server-8.0.11-1.el7.x86_64.rpm --nodeps --force 命令安装 server
-     5.  rpm -qa | grep mysql 命令查看 mysql 的安装包
-  5. 启动服务
-     1. systemctl start mysqld 启动服务
-     2. systemctl enable mysqld 加入开机启动
-     3. systemctl status mysqld 查看服务状态
-     4. systemctl stop mysqld 停止服务
-     5. systemctl restart mysqld 重启服务
-     6. systemctl diable mysqld 去除开启启动
+**上图！！！！：**
+- ![](./10.jpg)
 
+<br><br><br>
 
-# 然后...
-> 后面直接给我报错，于是就，不做笔记了！<br>
-可能是MySQL版本的问题,但最后也就那么一丢丢内容了<br>
-我相信你可以想象出来下面的笔记的 哈哈哈哈<br>
+# 各文件里面的代码详解(按联系顺序)🎳
+<br><br>
+
+> [!WARNING|label:]app项目里面的__init__.py文件：
+从flask导Flask包
+```python
+from flask import Flask
+```
+第一步，创建程序实例,仅有的一个参数则是包的名字：
+```python
+app = Flask(__name__)
+```
+配置app：包含连接mysql数据库的一个库
+```python
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:mldn123456@192.168.17.128:3306/db_phone_analysis_data_3?charset=utf8'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = '123456'
+
+#  mysql+pymysql://root:mldn123456@192.168.17.128:3306/db_phone_analysis_data_3?charset=utf8
+#  mysql+pymysql://数据库账号：密码@地址：端口/库名?编码
+```
+从flask_sqlalchemy导入SQLAlchemy
+```python
+from flask_sqlalchemy import SQLAlchemy
+```
+将app加进SQLAlchemy包里，并创建db对象，最后从app导入routes
+```python
+db = SQLAlchemy(app)
+from app import routes
+```
+<br>
+
+> [!Danger|label:]model文件里面的data.py文件：
+从app导入db对象，db对象则是一个连接数据库的一个包
+```python
+from app import db
+```
+链接不同的表，则要创建不同的类，并在类名的后面括号里加入db.Model，例如：
+```python
+class Tbl_Sales_Cpu_Count(db.Model):
+```
+类里面__tablenaem__后面的名字是__init__连接的库里面的表的名字，表名要跟数据库的一致,类名自主定义<br>
+Column则是定义字段的方法:里面所定义的整型，字符型前需要加db. ，因为db可以理解为处理数据库的工具<br>
+primary_key为自增长序列，所以这一个字段在html文件中引用的时候就不需要引用
+
+<br>
+
+> [!Tip|label:]model文件里面的__init__.py文件：
+从本文件夹中的data文件中导入类
+```python
+from .data import Tbl_Sales_Os_Count,Tbl_Sales_Cpu_Count,Tbl_Sales_Rom_Count,Tbl_Sales_Ram_Count
+```
+这时候，在其他文件中要用到这个models文件夹中的模块的时候，就可以直接从models中导包，不需要.models.data import *** 或者有更多个model文件，这时__init__文件就起到了作用。
+
+<br>
+
+> [!Note|label:]app文件里面的routes.py文件
+可以直接从app下的models导包，导的包来自models文件下__init__文件里导的包<br>
+而这里导的类则用在定义下面函数要返回的值，返回的则是表的字段。<br>
+在html文件中就可以点.出表的字段
+```python
+from app.models import Tbl_Sales_Os_Count,Tbl_Sales_Cpu_Count,Tbl_Sales_Rom_Count,Tbl_Sales_Ram_Count
+```
+如果要正版的使用查询功能，则需要用到数据库，那么就需要从app文件中导db，如这样使用
+```python
+from app import db
+res = db.session.query(Tbl_Sales_Cpu_Count).all()
+#就是查找这个函数里面的所有，而这个函数定义的是一个表，意思则是查询表的所有字段
+```
+使用简化版的则是：
+```python
+res = Tbl_Sales_Cpu_Count.query.all()
+#这里就不需要导db
+```
+@app.toute下面的函数返回的值直接进入该路由路径里输出的值<br>
+@app.toute下面的函数下面的函数名随便定义。<br>
+从flask 导入 render_template 这个包是为了把返回的值传到html文件中。
+
+<br>
+
+> [!WARNING|label:]templates文件里面的index.html文件
+- head：
+    - title后面的字段是显示在网页标签上的字段
+        - ![](./11.jpg)
+    - script中src属性定义的是echarts文件路径
+    - body定义的是一个盒子，给该盒子设定id，在一个html文件中，如果在body有多个script，里面引用的id不能重复，所以在一个html文件中，如果不引用相同的id所定义的东西，那id就不能重复。
+- body:
+    - 先定义一个盒子，准备一个具备高宽的 DOM 容器。
+    - 然后写script
+        - 基于准备好的dom，初始化echarts实例
+        - ```python
+          var myChart = echarts.init(document.getElementById('main'));
+          ```
+        <br>
+        
+        - **指定图表的配置项和数据**🧩
+        <br><br>
+        - 柱状图或者折线图
+          ```python
+            var option = {
+            title: {
+                text: 'ECharts 入门示例'
+            },
+            tooltip: {},
+            legend: {
+                data:['销量']
+            },
+            xAxis: {
+                data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
+            },
+            yAxis: {},
+            series: [{
+                name: '销量',
+                type: 'bar', #或者折线图   line
+                data: [5, 20, 36, 10, 10, 20]
+            }]
+          };
+          ```
+        - 饼图
+
+        ```python
+            option = {
+                title: {
+                    text:{text:'手机cpu型号销量统计',
+                          left:'center'},,
+                    subtext: '纯属虚构',
+                    left: 'center'
+                    },
+                tooltip: {},
+                legend: {},
+                series: [
+                {
+                    name: '销量',
+                    type: 'pie',
+                    radius: '50%',
+                    data: [
+                        {% for i in cpu_res %}
+                        {value:{{i.fld_sale_count}},name:'{{i.fld_cpu_name}}'},
+                        {% endfor %}
+                    ], 
+                }]
+                };
+        ```
+        **柱状图，折线图的option里面包括title，tooltip，legend，xAxis，yAxis，series**<br>
+        **饼图的series里面包括name，type，data** 🎬
+
+        **饼图的option里面包括title，tooltip，legend，series**<br>
+        **饼图的series里面包括name，type，radius，data**🏹
+
+        **以上的图是data里面的值直接写里面，也可以写在定义盒子后面，定义变量，然后此处引用变量就行**🎸
+
+        - 使用刚指定的配置项和数据显示图表。
+        - ```python
+            myChart.setOption(option)
+          ```
+# 启动整个项目♨️
+```python
+from app import app
+if __name__=='__main__':
+    app.run()
+```
